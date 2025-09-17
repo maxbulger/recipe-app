@@ -101,7 +101,7 @@ export async function DELETE(
     }
 
     // Soft delete
-    const recipe = await prisma.recipe.update({
+    await prisma.recipe.update({
       where: { id },
       data: { deletedAt: new Date() }
     })

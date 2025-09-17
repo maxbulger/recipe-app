@@ -56,7 +56,7 @@ export default function SearchPage() {
           <h1 className="text-3xl font-bold text-gray-900">
             {searchTerm ? (
               <>
-                {searchType === 'search' ? 'Search Results' : 'Recipes Tagged'}: "{searchTerm}"
+                {searchType === 'search' ? 'Search Results' : 'Recipes Tagged'}: &quot;{searchTerm}&quot;
               </>
             ) : (
               'Search Recipes'
@@ -121,7 +121,7 @@ export default function SearchPage() {
               }
               {searchTerm && (
                 <span>
-                  {' '}for "{searchTerm}"
+                  {' '}for &quot;{searchTerm}&quot;
                 </span>
               )}
             </p>
