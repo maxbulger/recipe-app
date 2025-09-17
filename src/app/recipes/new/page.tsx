@@ -60,42 +60,42 @@ export default function NewRecipePage() {
   const addIngredient = () => {
     setFormData(prev => ({
       ...prev,
-      ingredients: [...prev.ingredients, '']
+      ingredients: [...(prev.ingredients || []), '']
     }))
   }
 
   const removeIngredient = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      ingredients: prev.ingredients.filter((_, i) => i !== index)
+      ingredients: (prev.ingredients || []).filter((_, i) => i !== index)
     }))
   }
 
   const updateIngredient = (index: number, value: string) => {
     setFormData(prev => ({
       ...prev,
-      ingredients: prev.ingredients.map((ing, i) => i === index ? value : ing)
+      ingredients: (prev.ingredients || []).map((ing, i) => i === index ? value : ing)
     }))
   }
 
   const addInstruction = () => {
     setFormData(prev => ({
       ...prev,
-      instructions: [...prev.instructions, '']
+      instructions: [...(prev.instructions || []), '']
     }))
   }
 
   const removeInstruction = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      instructions: prev.instructions.filter((_, i) => i !== index)
+      instructions: (prev.instructions || []).filter((_, i) => i !== index)
     }))
   }
 
   const updateInstruction = (index: number, value: string) => {
     setFormData(prev => ({
       ...prev,
-      instructions: prev.instructions.map((inst, i) => i === index ? value : inst)
+      instructions: (prev.instructions || []).map((inst, i) => i === index ? value : inst)
     }))
   }
 
@@ -224,7 +224,7 @@ export default function NewRecipePage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Ingredients *
           </label>
-          {formData.ingredients.map((ingredient, index) => (
+          {(formData.ingredients || []).map((ingredient, index) => (
             <div key={index} className="flex gap-2 mb-2">
               <input
                 type="text"
@@ -234,7 +234,7 @@ export default function NewRecipePage() {
                 placeholder={`Ingredient ${index + 1}`}
                 required={index === 0}
               />
-              {formData.ingredients.length > 1 && (
+              {(formData.ingredients || []).length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeIngredient(index)}
@@ -258,7 +258,7 @@ export default function NewRecipePage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Instructions *
           </label>
-          {formData.instructions.map((instruction, index) => (
+          {(formData.instructions || []).map((instruction, index) => (
             <div key={index} className="flex gap-2 mb-2">
               <textarea
                 value={instruction}
@@ -268,7 +268,7 @@ export default function NewRecipePage() {
                 rows={2}
                 required={index === 0}
               />
-              {formData.instructions.length > 1 && (
+              {(formData.instructions || []).length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeInstruction(index)}
@@ -295,7 +295,7 @@ export default function NewRecipePage() {
           <input
             type="text"
             id="tags"
-            value={formData.tags.join(', ')}
+            value={(formData.tags || []).join(', ')}
             onChange={(e) => handleTagsChange(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="vegetarian, quick, healthy"
