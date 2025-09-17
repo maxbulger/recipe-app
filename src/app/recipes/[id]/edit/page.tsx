@@ -1,21 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Recipe, UpdateRecipeInput } from '@/types/recipe'
 
 interface EditRecipePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function EditRecipePage({ params }: EditRecipePageProps) {
+  const { id } = use(params)
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<UpdateRecipeInput>({
-    id: params.id,
+    id,
     title: '',
     description: '',
     ingredients: [''],
@@ -30,11 +31,11 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
 
   useEffect(() => {
     fetchRecipe()
-  }, [params.id])
+  }, [id])
 
   const fetchRecipe = async () => {
     try {
-      const res = await fetch(`/api/recipes/${params.id}`)
+      const res = await fetch(`/api/recipes/${id}`)
       if (!res.ok) {
         throw new Error('Recipe not found')
       }
@@ -77,7 +78,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         description: formData.description || undefined
       }
 
-      const res = await fetch(`/api/recipes/${params.id}`, {
+      const res = await fetch(`/api/recipes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanedData)
@@ -87,7 +88,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         throw new Error('Failed to update recipe')
       }
 
-      router.push(`/recipes/${params.id}`)
+      router.push(`/recipes/${id}`)
     } catch (error) {
       alert('Failed to update recipe')
     } finally {
@@ -176,7 +177,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Link href={`/recipes/${params.id}`} className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+        <Link href={`/recipes/${id}`} className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
           ← Back to recipe
         </Link>
         <h1 className="text-4xl font-bold text-gray-900">Edit Recipe</h1>
@@ -378,7 +379,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
           <Link
-            href={`/recipes/${params.id}`}
+            href={`/recipes/${id}`}
             className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
           >
             Cancel

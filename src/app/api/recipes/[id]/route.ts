@@ -7,9 +7,10 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params
     const recipe = await prisma.recipe.findFirst({
       where: {
-        id: params.id,
+        id,
         deletedAt: null
       }
     })
@@ -36,11 +37,12 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params
     const body: UpdateRecipeInput = await request.json()
 
     const existingRecipe = await prisma.recipe.findFirst({
       where: {
-        id: params.id,
+        id,
         deletedAt: null
       }
     })
@@ -53,7 +55,7 @@ export async function PUT(
     }
 
     const recipe = await prisma.recipe.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title: body.title,
         description: body.description,
@@ -83,9 +85,10 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params
     const existingRecipe = await prisma.recipe.findFirst({
       where: {
-        id: params.id,
+        id,
         deletedAt: null
       }
     })
@@ -99,7 +102,7 @@ export async function DELETE(
 
     // Soft delete
     const recipe = await prisma.recipe.update({
-      where: { id: params.id },
+      where: { id },
       data: { deletedAt: new Date() }
     })
 

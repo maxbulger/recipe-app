@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Recipe } from '@/types/recipe'
 
 interface RecipePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function RecipePage({ params }: RecipePageProps) {
+  const { id } = use(params)
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -17,11 +18,11 @@ export default function RecipePage({ params }: RecipePageProps) {
 
   useEffect(() => {
     fetchRecipe()
-  }, [params.id])
+  }, [id])
 
   const fetchRecipe = async () => {
     try {
-      const res = await fetch(`/api/recipes/${params.id}`)
+      const res = await fetch(`/api/recipes/${id}`)
       if (!res.ok) {
         throw new Error('Recipe not found')
       }
@@ -38,7 +39,7 @@ export default function RecipePage({ params }: RecipePageProps) {
     if (!confirm('Are you sure you want to delete this recipe?')) return
 
     try {
-      const res = await fetch(`/api/recipes/${params.id}`, {
+      const res = await fetch(`/api/recipes/${id}`, {
         method: 'DELETE'
       })
 
