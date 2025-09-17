@@ -68,9 +68,9 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     try {
       const cleanedData = {
         ...formData,
-        ingredients: formData.ingredients.filter(i => i.trim()),
-        instructions: formData.instructions.filter(i => i.trim()),
-        tags: formData.tags.filter(t => t.trim()),
+        ingredients: formData.ingredients?.filter(i => i.trim()) || [],
+        instructions: formData.instructions?.filter(i => i.trim()) || [],
+        tags: formData.tags?.filter(t => t.trim()) || [],
         prepTime: formData.prepTime || undefined,
         cookTime: formData.cookTime || undefined,
         servings: formData.servings || undefined,
