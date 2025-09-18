@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
@@ -18,6 +18,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<UpdateRecipeInput>({
     id,
@@ -260,7 +261,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
             required
             value={formData.title}
             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="Enter recipe title"
           />
         </div>
@@ -274,7 +275,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
             rows={3}
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="Brief description of the recipe"
           />
         </div>
@@ -293,16 +294,20 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
               placeholder="https://example.com/image.jpg"
             />
-            <div className="text-sm text-gray-500">or upload from your device</div>
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handleImageFileChange}
-              disabled={uploading}
-              multiple
-              className="block cursor-pointer text-sm text-gray-700 disabled:opacity-60 disabled:cursor-not-allowed file:mr-4 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-indigo-600 file:to-cyan-600 file:text-white hover:file:from-indigo-700 hover:file:to-cyan-700 file:px-5 file:py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 file:cursor-pointer"
-            />
+            <div className="flex items-center gap-3">
+              <Button type="button" onClick={() => !uploading && fileInputRef.current?.click()} disabled={uploading}>
+                Upload a photo
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageFileChange}
+                disabled={uploading}
+                multiple
+                className="hidden"
+              />
+            </div>
             {uploading && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <svg className="animate-spin h-4 w-4 text-indigo-600" viewBox="0 0 24 24">
@@ -392,7 +397,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               min="0"
               value={formData.prepTime || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, prepTime: e.target.value ? Number(e.target.value) : undefined }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -406,7 +411,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               min="0"
               value={formData.cookTime || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, cookTime: e.target.value ? Number(e.target.value) : undefined }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -420,7 +425,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               min="1"
               value={formData.servings || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, servings: e.target.value ? Number(e.target.value) : undefined }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -432,7 +437,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               id="difficulty"
               value={formData.difficulty || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, difficulty: e.target.value as 'easy' | 'medium' | 'hard' || undefined }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="">Select...</option>
               <option value="easy">Easy</option>
