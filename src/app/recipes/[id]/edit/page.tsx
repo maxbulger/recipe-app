@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Button from '@/components/ui/Button'
 import { Recipe, UpdateRecipeInput } from '@/types/recipe'
 
 interface EditRecipePageProps {
@@ -14,6 +15,9 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [photos, setPhotos] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<UpdateRecipeInput>({
     id,
@@ -54,6 +58,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         tags: recipe.tags,
         imageUrl: recipe.imageUrl || ''
       })
+      setPhotos(recipe.imageUrl ? [recipe.imageUrl] : [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load recipe')
     } finally {
@@ -75,7 +80,8 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         cookTime: formData.cookTime || undefined,
         servings: formData.servings || undefined,
         imageUrl: formData.imageUrl || undefined,
-        description: formData.description || undefined
+        description: formData.description || undefined,
+        galleryUrls: photos.length ? photos : undefined
       }
 
       const res = await fetch(`/api/recipes/${id}`, {
@@ -145,6 +151,41 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     }))
   }
 
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputEl = e.currentTarget
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+    setUploading(true)
+    setUploadError(null)
+    try {
+      const uploaded: string[] = []
+      for (const file of files) {
+        const form = new FormData()
+        form.append('file', file)
+        const res = await fetch('/api/upload', { method: 'POST', body: form })
+        const data: any = await res.json()
+        if (!res.ok) throw new Error(data?.error || 'Upload failed')
+        uploaded.push((data as { url: string }).url)
+      }
+      setPhotos(prev => [...prev, ...uploaded])
+      setFormData(prev => ({ ...prev, imageUrl: prev.imageUrl || uploaded[0] }))
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+      if (inputEl) inputEl.value = ''
+    }
+  }
+
+  const setCoverPhoto = (url: string) => {
+    setFormData(prev => ({ ...prev, imageUrl: url }))
+  }
+
+  const removePhoto = (url: string) => {
+    setPhotos(prev => prev.filter(u => u !== url))
+    setFormData(prev => ({ ...prev, imageUrl: prev.imageUrl === url ? '' : prev.imageUrl }))
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -166,7 +207,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Recipe Not Found</h1>
           <p className="text-gray-600 mb-6">{error}</p>
-          <Link href="/" className="text-blue-600 hover:text-blue-800">
+          <Link href="/" className="text-indigo-700 hover:text-indigo-900">
             ← Back to recipes
           </Link>
         </div>
@@ -177,7 +218,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Link href={`/recipes/${id}`} className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+        <Link href={`/recipes/${id}`} className="text-indigo-700 hover:text-indigo-900 mb-4 inline-block">
           ← Back to recipe
         </Link>
         <h1 className="text-4xl font-bold text-gray-900">Edit Recipe</h1>
@@ -194,7 +235,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
             required
             value={formData.title}
             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="Enter recipe title"
           />
         </div>
@@ -208,23 +249,111 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
             rows={3}
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="Brief description of the recipe"
           />
         </div>
 
         <div>
           <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-2">
-            Image URL
+            Image
           </label>
-          <input
-            type="url"
-            id="imageUrl"
-            value={formData.imageUrl}
-            onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="https://example.com/image.jpg"
-          />
+          <div className="space-y-3">
+            <input
+              type="url"
+              id="imageUrl"
+              value={formData.imageUrl}
+              onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
+              disabled={uploading}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="https://example.com/image.jpg"
+            />
+            <div className="text-sm text-gray-500">or upload from your device</div>
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageFileChange}
+              disabled={uploading}
+              multiple
+              className="block cursor-pointer text-sm text-gray-700 disabled:opacity-60 disabled:cursor-not-allowed file:mr-4 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-indigo-600 file:to-cyan-600 file:text-white hover:file:from-indigo-700 hover:file:to-cyan-700 file:px-5 file:py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 file:cursor-pointer"
+            />
+            {uploading && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <svg className="animate-spin h-4 w-4 text-indigo-600" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                Uploading...
+              </div>
+            )}
+            {uploadError && <div className="text-sm text-red-600">{uploadError}</div>}
+            {photos.length > 0 && (
+              <div
+                className="grid grid-cols-3 sm:grid-cols-4 gap-3"
+                onDragOver={(e) => e.preventDefault()}
+              >
+                {photos.map((url, index) => (
+                  <div
+                    key={url}
+                    className="group relative"
+                    tabIndex={0}
+                    aria-label={`Photo ${index + 1}. Use arrow keys to reorder.`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        if (index === 0) return
+                        setPhotos(prev => {
+                          const arr = [...prev]
+                          const [moved] = arr.splice(index, 1)
+                          arr.splice(index - 1, 0, moved)
+                          return arr
+                        })
+                        e.preventDefault()
+                      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        if (index === photos.length - 1) return
+                        setPhotos(prev => {
+                          const arr = [...prev]
+                          const [moved] = arr.splice(index, 1)
+                          arr.splice(index + 1, 0, moved)
+                          return arr
+                        })
+                        e.preventDefault()
+                      }
+                    }}
+                    onDrop={(e) => {
+                      const from = Number(e.dataTransfer.getData('text/plain'))
+                      if (Number.isNaN(from)) return
+                      const to = index
+                      if (from === to) return
+                      setPhotos(prev => {
+                        const arr = [...prev]
+                        const [moved] = arr.splice(from, 1)
+                        arr.splice(to, 0, moved)
+                        return arr
+                      })
+                    }}
+                  >
+                    <div
+                      className="absolute left-1 top-1 z-10 inline-flex items-center gap-1 text-xs text-gray-700 bg-white/90 backdrop-blur rounded-md px-2 py-1 border border-black/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto cursor-grab active:cursor-grabbing"
+                      draggable
+                      onDragStart={(e) => e.dataTransfer.setData('text/plain', String(index))}
+                      aria-label="Drag to reorder"
+                    >
+                      <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M7 5h2v2H7V5zm4 0h2v2h-2V5zM7 9h2v2H7V9zm4 0h2v2h-2V9zM7 13h2v2H7v-2zm4 0h2v2h-2v-2z" />
+                      </svg>
+                      <span className="hidden sm:inline">Drag</span>
+                    </div>
+                    <img src={url} alt="Uploaded" className="h-24 w-full object-cover rounded-lg border border-black/5" />
+                    <div className="mt-2 flex gap-2">
+                      <button type="button" onClick={() => setCoverPhoto(url)} className="text-xs text-indigo-700 hover:text-indigo-900">{formData.imageUrl === url ? 'Cover' : 'Set cover'}</button>
+                      <button type="button" onClick={() => removePhoto(url)} className="text-xs text-red-600 hover:text-red-800">Remove</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -238,7 +367,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               min="0"
               value={formData.prepTime || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, prepTime: e.target.value ? Number(e.target.value) : undefined }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -252,7 +381,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               min="0"
               value={formData.cookTime || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, cookTime: e.target.value ? Number(e.target.value) : undefined }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -266,7 +395,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               min="1"
               value={formData.servings || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, servings: e.target.value ? Number(e.target.value) : undefined }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -278,7 +407,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               id="difficulty"
               value={formData.difficulty || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, difficulty: e.target.value as 'easy' | 'medium' | 'hard' || undefined }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="">Select...</option>
               <option value="easy">Easy</option>
@@ -298,7 +427,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
                 type="text"
                 value={ingredient}
                 onChange={(e) => updateIngredient(index, e.target.value)}
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder={`Ingredient ${index + 1}`}
                 required={index === 0}
               />
@@ -316,7 +445,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           <button
             type="button"
             onClick={addIngredient}
-            className="text-blue-600 hover:text-blue-800 text-sm"
+            className="text-indigo-700 hover:text-indigo-900 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             + Add ingredient
           </button>
@@ -331,7 +460,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
               <textarea
                 value={instruction}
                 onChange={(e) => updateInstruction(index, e.target.value)}
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder={`Step ${index + 1}`}
                 rows={2}
                 required={index === 0}
@@ -350,7 +479,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           <button
             type="button"
             onClick={addInstruction}
-            className="text-blue-600 hover:text-blue-800 text-sm"
+            className="text-indigo-700 hover:text-indigo-900 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             + Add instruction
           </button>
@@ -365,25 +494,16 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
             id="tags"
             value={(formData.tags || []).join(', ')}
             onChange={(e) => handleTagsChange(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="vegetarian, quick, healthy"
           />
         </div>
 
         <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-          >
+          <Button type="submit" disabled={saving} size="lg">
             {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-          <Link
-            href={`/recipes/${id}`}
-            className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
-          >
-            Cancel
-          </Link>
+          </Button>
+          <Button href={`/recipes/${id}`} variant="secondary" size="lg">Cancel</Button>
         </div>
       </form>
     </div>

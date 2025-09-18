@@ -10,6 +10,7 @@ export interface Recipe {
   difficulty?: 'easy' | 'medium' | 'hard'
   tags: string[]
   imageUrl?: string
+  galleryUrls: string[]
   createdAt: Date
   updatedAt: Date
   deletedAt?: Date
@@ -26,6 +27,7 @@ export interface CreateRecipeInput {
   difficulty?: 'easy' | 'medium' | 'hard'
   tags?: string[]
   imageUrl?: string
+  galleryUrls?: string[]
 }
 
 export interface UpdateRecipeInput extends Partial<CreateRecipeInput> {

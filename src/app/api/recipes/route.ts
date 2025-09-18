@@ -4,6 +4,10 @@ import { CreateRecipeInput } from '@/types/recipe'
 
 export async function GET(request: NextRequest) {
   try {
+    // Allow UI preview without a DB by returning an empty list
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json([])
+    }
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
     const tag = searchParams.get('tag')
@@ -50,7 +54,8 @@ export async function POST(request: NextRequest) {
         servings: body.servings,
         difficulty: body.difficulty,
         tags: body.tags || [],
-        imageUrl: body.imageUrl
+        imageUrl: body.imageUrl,
+        galleryUrls: body.galleryUrls || []
       }
     })
 

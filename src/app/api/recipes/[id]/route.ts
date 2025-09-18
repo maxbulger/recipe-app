@@ -7,6 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
+    }
     const { id } = await params
     const recipe = await prisma.recipe.findFirst({
       where: {
@@ -37,6 +40,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
+    }
     const { id } = await params
     const body: UpdateRecipeInput = await request.json()
 
@@ -66,7 +72,8 @@ export async function PUT(
         servings: body.servings,
         difficulty: body.difficulty,
         tags: body.tags,
-        imageUrl: body.imageUrl
+        imageUrl: body.imageUrl,
+        galleryUrls: body.galleryUrls || []
       }
     })
 
@@ -85,6 +92,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
+    }
     const { id } = await params
     const existingRecipe = await prisma.recipe.findFirst({
       where: {

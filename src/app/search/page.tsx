@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
 import SearchBar from '@/components/SearchBar'
 import { Recipe } from '@/types/recipe'
 
@@ -48,7 +50,7 @@ function SearchPageContent() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+        <Link href="/" className="text-indigo-700 hover:text-indigo-900 mb-4 inline-block">
           ← Back to recipes
         </Link>
 
@@ -62,12 +64,7 @@ function SearchPageContent() {
               'Search Recipes'
             )}
           </h1>
-          <Link
-            href="/recipes/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Add Recipe
-          </Link>
+          <Button href="/recipes/new">Add Recipe</Button>
         </div>
 
         <div className="max-w-lg">
@@ -78,7 +75,7 @@ function SearchPageContent() {
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+            <div key={i} className="bg-white/80 backdrop-blur rounded-2xl border border-black/5 shadow-sm overflow-hidden animate-pulse">
               <div className="h-48 bg-gray-200"></div>
               <div className="p-4">
                 <div className="h-6 bg-gray-200 rounded mb-2"></div>
@@ -102,12 +99,7 @@ function SearchPageContent() {
             <p className="text-lg font-semibold">Search Error</p>
             <p className="text-gray-600">{error}</p>
           </div>
-          <button
-            onClick={searchRecipes}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
+          <Button onClick={searchRecipes}>Try Again</Button>
         </div>
       )}
 
@@ -129,21 +121,21 @@ function SearchPageContent() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recipes.map((recipe) => (
-              <Link
-                key={recipe.id}
-                href={`/recipes/${recipe.id}`}
-                className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
+              <Card key={recipe.id}>
                 {recipe.imageUrl && (
-                  <img
-                    src={recipe.imageUrl}
-                    alt={recipe.title}
-                    className="w-full h-48 object-cover"
-                  />
+                  <Link href={`/recipes/${recipe.id}`}>
+                    <img
+                      src={recipe.imageUrl}
+                      alt={recipe.title}
+                      className="w-full h-48 object-cover"
+                    />
+                  </Link>
                 )}
                 <div className="p-4">
                   <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                    {recipe.title}
+                    <Link href={`/recipes/${recipe.id}`} className="hover:underline">
+                      {recipe.title}
+                    </Link>
                   </h2>
                   {recipe.description && (
                     <p className="text-gray-600 mb-3 line-clamp-2">
@@ -167,8 +159,7 @@ function SearchPageContent() {
                         <Link
                           key={recipeTag}
                           href={`/search?tag=${encodeURIComponent(recipeTag)}`}
-                          className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs hover:bg-gray-200 transition-colors"
-                          onClick={(e) => e.stopPropagation()}
+                          className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs hover:bg-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                         >
                           {recipeTag}
                         </Link>
@@ -181,7 +172,7 @@ function SearchPageContent() {
                     </div>
                   )}
                 </div>
-              </Link>
+              </Card>
             ))}
           </div>
 
@@ -197,17 +188,12 @@ function SearchPageContent() {
               </h2>
               <p className="text-gray-500 mb-6">
                 Try searching with different keywords or{' '}
-                <Link href="/recipes/new" className="text-blue-600 hover:text-blue-800">
+                <Link href="/recipes/new" className="text-indigo-700 hover:text-indigo-900">
                   add a new recipe
                 </Link>
                 .
               </p>
-              <Link
-                href="/"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Browse All Recipes
-              </Link>
+              <Button href="/" size="lg">Browse All Recipes</Button>
             </div>
           )}
         </>

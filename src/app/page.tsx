@@ -1,10 +1,17 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
 import SearchBar from '@/components/SearchBar'
 import { Recipe } from '@/types/recipe'
 
 async function getRecipes(): Promise<Recipe[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/recipes`, {
+    const hdrs = await headers()
+    const host = hdrs.get('host') || 'localhost:3000'
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+    const base = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`
+    const res = await fetch(`${base}/api/recipes`, {
       next: { revalidate: 60 }
     })
 
@@ -23,15 +30,12 @@ export default async function HomePage() {
   const recipes = await getRecipes()
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">Recipe Collection</h1>
-        <Link
-          href="/recipes/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Add Recipe
-        </Link>
+    <div className="container mx-auto px-4 py-10">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
+        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600">
+          recipook.
+        </h1>
+        <Button href="/recipes/new">Add Recipe</Button>
       </div>
 
       <div className="mb-8 max-w-lg">
@@ -40,21 +44,21 @@ export default async function HomePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {recipes.map((recipe) => (
-          <Link
-            key={recipe.id}
-            href={`/recipes/${recipe.id}`}
-            className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-          >
+          <Card key={recipe.id}>
             {recipe.imageUrl && (
-              <img
-                src={recipe.imageUrl}
-                alt={recipe.title}
-                className="w-full h-48 object-cover"
-              />
+              <Link href={`/recipes/${recipe.id}`}>
+                <img
+                  src={recipe.imageUrl}
+                  alt={recipe.title}
+                  className="w-full h-48 object-cover"
+                />
+              </Link>
             )}
             <div className="p-4">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {recipe.title}
+                <Link href={`/recipes/${recipe.id}`} className="hover:underline">
+                  {recipe.title}
+                </Link>
               </h2>
               {recipe.description && (
                 <p className="text-gray-600 mb-3 line-clamp-2">
@@ -78,8 +82,7 @@ export default async function HomePage() {
                     <Link
                       key={tag}
                       href={`/search?tag=${encodeURIComponent(tag)}`}
-                      className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs hover:bg-gray-200 transition-colors"
-                      onClick={(e) => e.stopPropagation()}
+                      className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs hover:bg-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                     >
                       {tag}
                     </Link>
@@ -92,7 +95,7 @@ export default async function HomePage() {
                 </div>
               )}
             </div>
-          </Link>
+          </Card>
         ))}
       </div>
 
@@ -104,12 +107,7 @@ export default async function HomePage() {
           <p className="text-gray-500 mb-6">
             Start by adding your first recipe to build your collection.
           </p>
-          <Link
-            href="/recipes/new"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Add Your First Recipe
-          </Link>
+          <Button href="/recipes/new" size="lg">Add Your First Recipe</Button>
         </div>
       )}
     </div>
