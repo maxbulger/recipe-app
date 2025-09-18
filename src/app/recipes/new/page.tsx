@@ -123,9 +123,9 @@ export default function NewRecipePage() {
         const form = new FormData()
         form.append('file', file)
         const res = await fetch('/api/upload', { method: 'POST', body: form })
-        const data: any = await res.json()
-        if (!res.ok) throw new Error(data?.error || 'Upload failed')
-        uploaded.push((data as { url: string }).url)
+        const data = await res.json() as { url?: string; error?: string }
+        if (!res.ok || !data.url) throw new Error(data?.error || 'Upload failed')
+        uploaded.push(data.url)
       }
       setPhotos(prev => [...prev, ...uploaded])
       setFormData(prev => ({ ...prev, imageUrl: prev.imageUrl || uploaded[0] }))

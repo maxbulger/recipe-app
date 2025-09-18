@@ -21,7 +21,20 @@ export default function RecipePage({ params }: RecipePageProps) {
   const router = useRouter()
 
   useEffect(() => {
-    fetchRecipe()
+    const run = async () => {
+      try {
+        const res = await fetch(`/api/recipes/${id}`)
+        if (!res.ok) throw new Error('Recipe not found')
+        const data = await res.json()
+        setRecipe(data)
+        setActiveImage(data.imageUrl || data.galleryUrls?.[0] || null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load recipe')
+      } finally {
+        setLoading(false)
+      }
+    }
+    run()
   }, [id])
 
   const fetchRecipe = async () => {

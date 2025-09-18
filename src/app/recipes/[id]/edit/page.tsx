@@ -34,7 +34,32 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   })
 
   useEffect(() => {
-    fetchRecipe()
+    const run = async () => {
+      try {
+        const res = await fetch(`/api/recipes/${id}`)
+        if (!res.ok) throw new Error('Recipe not found')
+        const recipe: Recipe = await res.json()
+        setFormData({
+          id: recipe.id,
+          title: recipe.title,
+          description: recipe.description || '',
+          ingredients: recipe.ingredients.length > 0 ? recipe.ingredients : [''],
+          instructions: recipe.instructions.length > 0 ? recipe.instructions : [''],
+          prepTime: recipe.prepTime,
+          cookTime: recipe.cookTime,
+          servings: recipe.servings,
+          difficulty: recipe.difficulty,
+          tags: recipe.tags,
+          imageUrl: recipe.imageUrl || ''
+        })
+        setPhotos(recipe.imageUrl ? [recipe.imageUrl] : [])
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load recipe')
+      } finally {
+        setLoading(false)
+      }
+    }
+    run()
   }, [id])
 
   const fetchRecipe = async () => {
@@ -163,9 +188,9 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         const form = new FormData()
         form.append('file', file)
         const res = await fetch('/api/upload', { method: 'POST', body: form })
-        const data: any = await res.json()
-        if (!res.ok) throw new Error(data?.error || 'Upload failed')
-        uploaded.push((data as { url: string }).url)
+        const data = await res.json() as { url?: string; error?: string }
+        if (!res.ok || !data.url) throw new Error(data?.error || 'Upload failed')
+        uploaded.push(data.url)
       }
       setPhotos(prev => [...prev, ...uploaded])
       setFormData(prev => ({ ...prev, imageUrl: prev.imageUrl || uploaded[0] }))

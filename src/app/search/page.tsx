@@ -18,7 +18,24 @@ function SearchPageContent() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    searchRecipes()
+    const run = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const params = new URLSearchParams()
+        if (query) params.append('search', query)
+        if (tag) params.append('tag', tag)
+        const res = await fetch(`/api/recipes?${params.toString()}`)
+        if (!res.ok) throw new Error('Failed to search recipes')
+        const data = await res.json()
+        setRecipes(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to search recipes')
+      } finally {
+        setLoading(false)
+      }
+    }
+    run()
   }, [query, tag])
 
   const searchRecipes = async () => {

@@ -29,9 +29,12 @@ export default function RootLayout({
       >
         <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-black/5">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="/" className="text-2xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600">
+            <a className="sr-only" href="#main">Skip to content</a>
+            <a className="sr-only" href="#nav">Skip to navigation</a>
+            <a id="nav" className="sr-only" aria-hidden="true" />
+            <Link href="/" className="text-2xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600">
               recipook.
-            </a>
+            </Link>
           </div>
         </header>
         <main>{children}</main>
