@@ -187,19 +187,10 @@ export default function NewRecipePage() {
         </div>
 
         <div>
-          <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-2">
-            Image
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Photos
           </label>
           <div className="space-y-3">
-          <input
-            type="url"
-            id="imageUrl"
-            value={formData.imageUrl}
-            onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-            disabled={uploading}
-            className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
-            placeholder="https://example.com/image.jpg"
-          />
             <div className="flex items-center gap-3">
               <Button type="button" onClick={() => !uploading && fileInputRef.current?.click()} disabled={uploading}>
                 Upload a photo

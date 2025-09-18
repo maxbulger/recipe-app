@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { put } from '@vercel/blob'
 
 const DEFAULT_MAX_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_MIME = new Set([
@@ -49,17 +50,26 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadDir, { recursive: true })
-
     const safeExt = EXT_FROM_MIME[file.type] || 'bin'
     const filename = `${Date.now()}-${randomUUID()}.${safeExt}`
+
+    const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_RW_TOKEN
+    if (token) {
+      // Store in Vercel Blob (public)
+      const blob = await put(`uploads/${filename}`, file, {
+        access: 'public',
+        token,
+        contentType: file.type,
+      })
+      return NextResponse.json({ url: blob.url })
+    }
+
+    // Fallback to local disk (dev)
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+    await mkdir(uploadDir, { recursive: true })
     const filepath = path.join(uploadDir, filename)
-
     await writeFile(filepath, buffer)
-
-    const url = `/uploads/${filename}`
-    return NextResponse.json({ url })
+    return NextResponse.json({ url: `/uploads/${filename}` })
   } catch (error) {
     console.error('Upload failed:', error)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
