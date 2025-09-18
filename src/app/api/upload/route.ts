@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
 
     const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_RW_TOKEN
     if (token) {
-      // Store in Vercel Blob (public)
-      const blob = await put(`uploads/${filename}`, file, {
+      // Store in Vercel Blob (public). Use Buffer to avoid platform-specific File issues.
+      const blob = await put(`uploads/${filename}`, buffer, {
         access: 'public',
         token,
         contentType: file.type,
@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: `/uploads/${filename}` })
   } catch (error) {
     console.error('Upload failed:', error)
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Upload failed'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
