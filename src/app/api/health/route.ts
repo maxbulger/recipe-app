@@ -17,8 +17,8 @@ export async function GET() {
     try {
       await prisma.$queryRaw`SELECT 1`
       dbOk = true
-    } catch (e: any) {
-      dbError = e?.message || 'Database connection failed'
+    } catch (e: unknown) {
+      dbError = e instanceof Error ? e.message : 'Database connection failed'
     }
   }
 
@@ -27,4 +27,3 @@ export async function GET() {
     blob: { configured: blobToken }
   })
 }
-

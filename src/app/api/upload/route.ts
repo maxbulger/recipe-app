@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Basic guardrails
     const maxBytes = 10 * 1024 * 1024 // 10MB
-    if ((file as any).size && (file as any).size > maxBytes) {
+    if (file.size && file.size > maxBytes) {
       return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 413 })
     }
 
