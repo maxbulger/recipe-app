@@ -5,6 +5,8 @@ import Card from '@/components/ui/Card'
 import SearchBar from '@/components/SearchBar'
 import { Recipe } from '@/types/recipe'
 
+export const dynamic = 'force-dynamic'
+
 async function getRecipes(): Promise<Recipe[]> {
   try {
     const hdrs = await headers()

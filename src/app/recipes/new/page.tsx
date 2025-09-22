@@ -25,6 +25,8 @@ export default function NewRecipePage() {
     tags: [],
     imageUrl: ''
   })
+  const ingredientRefs = useRef<Array<HTMLInputElement | null>>([])
+  const instructionRefs = useRef<Array<HTMLTextAreaElement | null>>([])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,6 +92,21 @@ export default function NewRecipePage() {
     }))
   }
 
+  const handleIngredientKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      setFormData(prev => {
+        const list = [...(prev.ingredients || [])]
+        list.splice(index + 1, 0, '')
+        return { ...prev, ingredients: list }
+      })
+      // Focus the newly created input on next tick
+      setTimeout(() => {
+        ingredientRefs.current[index + 1]?.focus()
+      }, 0)
+    }
+  }
+
   const addInstruction = () => {
     setFormData(prev => ({
       ...prev,
@@ -109,6 +126,21 @@ export default function NewRecipePage() {
       ...prev,
       instructions: (prev.instructions || []).map((inst, i) => i === index ? value : inst)
     }))
+  }
+
+  const handleInstructionKeyDown = (index: number, e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter inserts a new step below and focuses it. Shift+Enter = newline
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      setFormData(prev => {
+        const list = [...(prev.instructions || [])]
+        list.splice(index + 1, 0, '')
+        return { ...prev, instructions: list }
+      })
+      setTimeout(() => {
+        instructionRefs.current[index + 1]?.focus()
+      }, 0)
+    }
   }
 
   const handleTagsChange = (value: string) => {
@@ -360,6 +392,8 @@ export default function NewRecipePage() {
                 type="text"
                 value={ingredient}
                 onChange={(e) => updateIngredient(index, e.target.value)}
+                onKeyDown={(e) => handleIngredientKeyDown(index, e)}
+                ref={(el) => { ingredientRefs.current[index] = el }}
                 className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder={`Ingredient ${index + 1}`}
                 required={index === 0}
@@ -393,6 +427,8 @@ export default function NewRecipePage() {
               <textarea
                 value={instruction}
                 onChange={(e) => updateInstruction(index, e.target.value)}
+                onKeyDown={(e) => handleInstructionKeyDown(index, e)}
+                ref={(el) => { instructionRefs.current[index] = el }}
                 className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder={`Step ${index + 1}`}
                 rows={2}
