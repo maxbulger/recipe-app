@@ -87,8 +87,9 @@ The app uses a single `Recipe` model with the following fields:
 1. Connect your repository to Vercel
 2. Set up a PostgreSQL database (Vercel Postgres recommended)
 3. Configure environment variables in Vercel dashboard:
-   - `DATABASE_URL`
+   - `DATABASE_URL` (or `POSTGRES_PRISMA_URL` / `POSTGRES_URL`)
    - `NEXT_PUBLIC_APP_URL` (your production URL)
+   - `BLOB_READ_WRITE_TOKEN` (for image uploads via Vercel Blob)
 4. Deploy!
 
 The app is optimized for Vercel deployment with Next.js App Router and serverless API routes.

@@ -28,6 +28,7 @@ async function getRecipes(): Promise<Recipe[]> {
 
 export default async function HomePage() {
   const recipes = await getRecipes()
+  const canCreate = Boolean(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL)
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -35,7 +36,7 @@ export default async function HomePage() {
         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600">
           recipook.
         </h1>
-        <Button href="/recipes/new">Add Recipe</Button>
+        {canCreate && <Button href="/recipes/new">Add Recipe</Button>}
       </div>
 
       <div className="mb-8 max-w-lg">
@@ -107,7 +108,10 @@ export default async function HomePage() {
           <p className="text-gray-500 mb-6">
             Start by adding your first recipe to build your collection.
           </p>
-          <Button href="/recipes/new" size="lg">Add Your First Recipe</Button>
+          {canCreate && <Button href="/recipes/new" size="lg">Add Your First Recipe</Button>}
+          {!canCreate && (
+            <p className="text-sm text-gray-500 mt-2">Read-only preview: configure DATABASE_URL to enable creation.</p>
+          )}
         </div>
       )}
     </div>

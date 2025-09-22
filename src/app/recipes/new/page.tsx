@@ -51,13 +51,19 @@ export default function NewRecipePage() {
       })
 
       if (!res.ok) {
-        throw new Error('Failed to create recipe')
+        let msg = 'Failed to create recipe'
+        try {
+          const data = await res.json()
+          if (data?.error) msg = data.error
+        } catch {}
+        throw new Error(msg)
       }
 
       const recipe = await res.json()
       router.push(`/recipes/${recipe.id}`)
     } catch (error) {
-      alert('Failed to create recipe')
+      const message = error instanceof Error ? error.message : 'Failed to create recipe'
+      alert(message)
     } finally {
       setLoading(false)
     }

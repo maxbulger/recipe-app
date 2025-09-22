@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!process.env.DATABASE_URL) {
+    if (!process.env.DATABASE_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
     }
     const { id } = await params
@@ -40,7 +40,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!process.env.DATABASE_URL) {
+    if (!process.env.DATABASE_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
     }
     const { id } = await params
@@ -92,7 +92,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!process.env.DATABASE_URL) {
+    if (!process.env.DATABASE_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
     }
     const { id } = await params

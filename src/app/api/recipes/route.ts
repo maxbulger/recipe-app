@@ -5,7 +5,7 @@ import { CreateRecipeInput } from '@/types/recipe'
 export async function GET(request: NextRequest) {
   try {
     // Allow UI preview without a DB by returning an empty list
-    if (!process.env.DATABASE_URL) {
+    if (!process.env.DATABASE_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL) {
       return NextResponse.json([])
     }
     const { searchParams } = new URL(request.url)
@@ -41,6 +41,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Prevent creation when database is not configured (read-only preview)
+    if (!process.env.DATABASE_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      )
+    }
     const body: CreateRecipeInput = await request.json()
 
     const recipe = await prisma.recipe.create({
