@@ -100,10 +100,15 @@ export default function NewRecipePage() {
         list.splice(index + 1, 0, '')
         return { ...prev, ingredients: list }
       })
-      // Focus the newly created input on next tick
-      setTimeout(() => {
-        ingredientRefs.current[index + 1]?.focus()
-      }, 0)
+      // Focus the newly created input after DOM updates
+      if (typeof window !== 'undefined') {
+        const focusNext = () => ingredientRefs.current[index + 1]?.focus()
+        if ('requestAnimationFrame' in window) {
+          requestAnimationFrame(() => requestAnimationFrame(focusNext))
+        } else {
+          setTimeout(focusNext, 0)
+        }
+      }
     }
   }
 
@@ -137,9 +142,14 @@ export default function NewRecipePage() {
         list.splice(index + 1, 0, '')
         return { ...prev, instructions: list }
       })
-      setTimeout(() => {
-        instructionRefs.current[index + 1]?.focus()
-      }, 0)
+      if (typeof window !== 'undefined') {
+        const focusNext = () => instructionRefs.current[index + 1]?.focus()
+        if ('requestAnimationFrame' in window) {
+          requestAnimationFrame(() => requestAnimationFrame(focusNext))
+        } else {
+          setTimeout(focusNext, 0)
+        }
+      }
     }
   }
 

@@ -1,27 +1,23 @@
 import Link from 'next/link'
-import { headers } from 'next/headers'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import SearchBar from '@/components/SearchBar'
 import { Recipe } from '@/types/recipe'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 async function getRecipes(): Promise<Recipe[]> {
   try {
-    const hdrs = await headers()
-    const host = hdrs.get('host') || 'localhost:3000'
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
-    const base = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`
-    const res = await fetch(`${base}/api/recipes`, {
-      next: { revalidate: 60 }
-    })
-
-    if (!res.ok) {
+    // If DB isn't configured, return empty for preview
+    if (!process.env.DATABASE_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL) {
       return []
     }
-
-    return res.json()
+    const recipes = await prisma.recipe.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' }
+    })
+    return recipes as unknown as Recipe[]
   } catch (error) {
     console.error('Failed to fetch recipes:', error)
     return []
