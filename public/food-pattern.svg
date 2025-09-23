@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <style>
+    text { font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',system-ui,sans-serif; font-size: 18px; }
+  </style>
+  <rect width="120" height="120" fill="transparent"/>
+  <g opacity="0.12">
+    <text x="12" y="22">🍎</text>
+    <text x="72" y="22">🥖</text>
+    <text x="26" y="52">🧀</text>
+    <text x="86" y="52">🍣</text>
+    <text x="12" y="82">🌮</text>
+    <text x="72" y="82">🥗</text>
+    <text x="48" y="112">🧁</text>
+  </g>
+</svg>
+

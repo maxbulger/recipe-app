@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "recipook.",
-  description: "recipook. — a modern recipe app",
+  title: "recipook",
+  description: "recipook — a modern recipe app",
 };
 
 export default function RootLayout({
@@ -35,10 +35,20 @@ export default function RootLayout({
             <a className="sr-only" href="#nav">Skip to navigation</a>
             <a id="nav" className="sr-only" aria-hidden="true" />
             <Link href="/" className="text-2xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600">
-              recipook.
+              recipook
             </Link>
           </div>
         </header>
+        {/* Subtle food pattern background overlay */}
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 -z-10 [opacity:.12]"
+          style={{
+            backgroundImage: "url('/food-pattern.svg')",
+            backgroundRepeat: 'repeat',
+            backgroundSize: '120px 120px',
+          }}
+        />
         <HealthBanner />
         <main id="main">{children}</main>
       </body>

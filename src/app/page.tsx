@@ -32,7 +32,7 @@ export default async function HomePage() {
     <div className="container mx-auto px-4 py-10">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-cyan-600">
-          recipook.
+          recipook
         </h1>
         {canCreate && <Button href="/recipes/new">Add Recipe</Button>}
       </div>
