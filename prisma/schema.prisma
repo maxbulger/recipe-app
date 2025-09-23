@@ -23,6 +23,7 @@ model Recipe {
   tags        String[]
   imageUrl    String?
   galleryUrls String[] @default([])
+  cookLogs    Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime? // for soft delete

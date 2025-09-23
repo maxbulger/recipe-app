@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
         difficulty: body.difficulty,
         tags: body.tags || [],
         imageUrl: body.imageUrl,
-        galleryUrls: body.galleryUrls || []
+        galleryUrls: body.galleryUrls || [],
+        cookLogs: []
       }
     })
 

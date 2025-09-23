@@ -18,6 +18,17 @@ export default function RecipePage({ params }: RecipePageProps) {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showLogForm, setShowLogForm] = useState(false)
+  const [logDate, setLogDate] = useState<string>(() => {
+    const d = new Date()
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  })
+  const [logLocation, setLogLocation] = useState('')
+  const [logNotes, setLogNotes] = useState('')
+  const [logSaving, setLogSaving] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -68,6 +79,29 @@ export default function RecipePage({ params }: RecipePageProps) {
       router.push('/')
     } catch (err) {
       alert('Failed to delete recipe')
+    }
+  }
+
+  const handleAddLog = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!recipe) return
+    setLogSaving(true)
+    try {
+      const res = await fetch(`/api/recipes/${recipe.id}/logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: logDate, location: logLocation || undefined, notes: logNotes || undefined })
+      })
+      if (!res.ok) throw new Error('Failed to add log')
+      const updated = await res.json()
+      setRecipe(updated)
+      setShowLogForm(false)
+      setLogLocation('')
+      setLogNotes('')
+    } catch (err) {
+      alert('Failed to add log')
+    } finally {
+      setLogSaving(false)
     }
   }
 
@@ -245,6 +279,59 @@ export default function RecipePage({ params }: RecipePageProps) {
           </div>
         </div>
       )}
+
+      <div className="mt-10 bg-white/70 backdrop-blur p-4 rounded-xl border border-black/5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-gray-900">Cooking Log</h3>
+          {!showLogForm && (
+            <button
+              onClick={() => setShowLogForm(true)}
+              className="text-indigo-700 hover:text-indigo-900 text-sm"
+            >
+              Log
+            </button>
+          )}
+        </div>
+
+        {showLogForm && (
+          <form onSubmit={handleAddLog} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">Date</label>
+              <input type="date" value={logDate} onChange={(e) => setLogDate(e.target.value)} className="w-full p-2 border border-gray-300 rounded" />
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-xs text-gray-600 mb-1">Location</label>
+              <input type="text" value={logLocation} onChange={(e) => setLogLocation(e.target.value)} className="w-full p-2 border border-gray-300 rounded" placeholder="e.g., Home, Friend's place" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs text-gray-600 mb-1">Notes</label>
+              <textarea value={logNotes} onChange={(e) => setLogNotes(e.target.value)} rows={1} className="w-full p-2 border border-gray-300 rounded" placeholder="Optional notes" />
+            </div>
+            <div className="md:col-span-4 flex gap-2">
+              <button type="submit" disabled={logSaving} className="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-50">{logSaving ? 'Saving…' : 'Save Log'}</button>
+              <button type="button" onClick={() => setShowLogForm(false)} className="px-4 py-2 text-gray-700">Cancel</button>
+            </div>
+          </form>
+        )}
+
+        {Array.isArray(recipe.cookLogs as unknown as Array<{ date?: string }> ) && (recipe.cookLogs as unknown as Array<unknown>).length > 0 && (
+          <ul className="space-y-2 text-sm text-gray-700">
+            {(recipe.cookLogs as unknown as Array<{ date: string; location?: string; notes?: string }>)
+              .slice()
+              .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+              .map((log, idx) => (
+                <li key={idx} className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="font-medium text-gray-900">{log.date}</div>
+                    {(log.location || log.notes) && (
+                      <div className="text-gray-600">{[log.location, log.notes].filter(Boolean).join(' — ')}</div>
+                    )}
+                  </div>
+                </li>
+              ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }

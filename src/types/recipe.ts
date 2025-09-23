@@ -11,9 +11,16 @@ export interface Recipe {
   tags: string[]
   imageUrl?: string
   galleryUrls: string[]
+  cookLogs?: CookLog[]
   createdAt: Date
   updatedAt: Date
   deletedAt?: Date
+}
+
+export interface CookLog {
+  date: string // ISO date string (yyyy-mm-dd or full ISO)
+  location?: string
+  notes?: string
 }
 
 export interface CreateRecipeInput {
