@@ -46,7 +46,7 @@ export default function RootLayout({
           style={{
             backgroundImage: "url('/food-pattern.svg')",
             backgroundRepeat: 'repeat',
-            backgroundSize: '100px 100px',
+            backgroundSize: '160px 160px',
           }}
         />
         <HealthBanner />
