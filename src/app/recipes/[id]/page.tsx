@@ -201,17 +201,7 @@ export default function RecipePage({ params }: RecipePageProps) {
         <p className="text-gray-700 text-lg mb-6">{recipe.description}</p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white/70 backdrop-blur p-4 rounded-xl border border-black/5">
-          <h3 className="font-semibold text-gray-900 mb-2">Recipe Info</h3>
-          <div className="space-y-2 text-sm text-gray-600">
-            {recipe.prepTime && <div>Prep Time: {recipe.prepTime} minutes</div>}
-            {recipe.cookTime && <div>Cook Time: {recipe.cookTime} minutes</div>}
-            {recipe.servings && <div>Servings: {recipe.servings}</div>}
-            {recipe.difficulty && <div>Difficulty: {recipe.difficulty}</div>}
-          </div>
-        </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white/70 backdrop-blur p-4 rounded-xl border border-black/5">
           <h3 className="font-semibold text-gray-900 mb-2">Ingredients</h3>
           <ul className="space-y-1 text-sm text-gray-700">
