@@ -42,15 +42,15 @@ export default function RootLayout({
         {/* Subtle food pattern background overlay */}
         <div
           aria-hidden
-          className="pointer-events-none fixed inset-0 -z-10 [opacity:.12]"
+          className="pointer-events-none fixed inset-0 z-0 [opacity:.18]"
           style={{
             backgroundImage: "url('/food-pattern.svg')",
             backgroundRepeat: 'repeat',
-            backgroundSize: '120px 120px',
+            backgroundSize: '100px 100px',
           }}
         />
         <HealthBanner />
-        <main id="main">{children}</main>
+        <main id="main" className="relative z-10">{children}</main>
       </body>
     </html>
   );
