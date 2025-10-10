@@ -28,6 +28,7 @@ export default function NewRecipePage() {
     tags: [],
     imageUrl: ''
   })
+  const [tagsInput, setTagsInput] = useState('')
   const ingredientRefs = useRef<Array<HTMLInputElement | null>>([])
   const instructionRefs = useRef<Array<HTMLTextAreaElement | null>>([])
 
@@ -36,11 +37,12 @@ export default function NewRecipePage() {
     setLoading(true)
 
     try {
+      const finalTags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
       const cleanedData = {
         ...formData,
         ingredients: (formData.ingredients || []).filter(i => i.trim()),
         instructions: (formData.instructions || []).filter(i => i.trim()),
-        tags: (formData.tags || []).filter(t => t.trim()),
+        tags: finalTags,
         prepTime: formData.prepTime || undefined,
         cookTime: formData.cookTime || undefined,
         servings: formData.servings || undefined,
@@ -157,10 +159,10 @@ export default function NewRecipePage() {
     }
   }
 
-  const handleTagsChange = (value: string) => {
+  const handleTagsBlur = () => {
     setFormData(prev => ({
       ...prev,
-      tags: value.split(',').map(tag => tag.trim())
+      tags: tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
     }))
   }
 
@@ -475,8 +477,9 @@ export default function NewRecipePage() {
           <input
             type="text"
             id="tags"
-            value={(formData.tags || []).join(', ')}
-            onChange={(e) => handleTagsChange(e.target.value)}
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            onBlur={handleTagsBlur}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="vegetarian, quick, healthy"
           />

@@ -23,6 +23,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   const [error, setError] = useState<string | null>(null)
   const [showErrorAlert, setShowErrorAlert] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [tagsInput, setTagsInput] = useState('')
   const [formData, setFormData] = useState<UpdateRecipeInput>({
     id,
     title: '',
@@ -56,6 +57,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           tags: recipe.tags,
           imageUrl: recipe.imageUrl || ''
         })
+        setTagsInput(recipe.tags.join(', '))
         setPhotos(recipe.imageUrl ? [recipe.imageUrl] : [])
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load recipe')
@@ -87,6 +89,7 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
         tags: recipe.tags,
         imageUrl: recipe.imageUrl || ''
       })
+      setTagsInput(recipe.tags.join(', '))
       setPhotos(recipe.imageUrl ? [recipe.imageUrl] : [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load recipe')
@@ -100,11 +103,12 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     setSaving(true)
 
     try {
+      const finalTags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
       const cleanedData = {
         ...formData,
         ingredients: formData.ingredients?.filter(i => i.trim()) || [],
         instructions: formData.instructions?.filter(i => i.trim()) || [],
-        tags: formData.tags?.filter(t => t.trim()) || [],
+        tags: finalTags,
         prepTime: formData.prepTime || undefined,
         cookTime: formData.cookTime || undefined,
         servings: formData.servings || undefined,
@@ -174,10 +178,10 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
     }))
   }
 
-  const handleTagsChange = (value: string) => {
+  const handleTagsBlur = () => {
     setFormData(prev => ({
       ...prev,
-      tags: value.split(',').map(tag => tag.trim())
+      tags: tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
     }))
   }
 
@@ -517,8 +521,9 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           <input
             type="text"
             id="tags"
-            value={(formData.tags || []).join(', ')}
-            onChange={(e) => handleTagsChange(e.target.value)}
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            onBlur={handleTagsBlur}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="vegetarian, quick, healthy"
           />

@@ -289,12 +289,12 @@ export default function RecipePage({ params }: RecipePageProps) {
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-900">Cooking Log</h3>
           {!showLogForm && (
-            <button
+            <Button
               onClick={() => setShowLogForm(true)}
-              className="text-indigo-700 hover:text-indigo-900 text-sm"
+              size="sm"
             >
               Log
-            </button>
+            </Button>
           )}
         </div>
 
