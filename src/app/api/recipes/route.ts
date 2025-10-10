@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { CreateRecipeInput } from '@/types/recipe'
+import { createRecipeSchema } from '@/lib/validations/recipe'
+import { z } from 'zod'
 
 export async function GET(request: NextRequest) {
   try {
     // Allow UI preview without a DB by returning an empty list
     if (!process.env.DATABASE_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL) {
-      return NextResponse.json([])
+      return NextResponse.json({ recipes: [], total: 0, page: 1, totalPages: 0 })
     }
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
     const tag = searchParams.get('tag')
+    const page = parseInt(searchParams.get('page') || '1', 10)
+    const limit = parseInt(searchParams.get('limit') || '12', 10)
+
+    const skip = (page - 1) * limit
 
     const where = {
       deletedAt: null,
@@ -24,12 +29,24 @@ export async function GET(request: NextRequest) {
       ...(tag && { tags: { has: tag } })
     }
 
-    const recipes = await prisma.recipe.findMany({
-      where,
-      orderBy: { createdAt: 'desc' }
-    })
+    const [recipes, total] = await Promise.all([
+      prisma.recipe.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.recipe.count({ where })
+    ])
 
-    return NextResponse.json(recipes)
+    const totalPages = Math.ceil(total / limit)
+
+    return NextResponse.json({
+      recipes,
+      total,
+      page,
+      totalPages
+    })
   } catch (error) {
     console.error('Error fetching recipes:', error)
     return NextResponse.json(
@@ -48,21 +65,34 @@ export async function POST(request: NextRequest) {
         { status: 503 }
       )
     }
-    const body: CreateRecipeInput = await request.json()
+
+    const body = await request.json()
+
+    // Validate request body with Zod
+    const validationResult = createRecipeSchema.safeParse(body)
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validationResult.error.format() },
+        { status: 400 }
+      )
+    }
+
+    const validatedData = validationResult.data
 
     const recipe = await prisma.recipe.create({
       data: {
-        title: body.title,
-        description: body.description,
-        ingredients: body.ingredients,
-        instructions: body.instructions,
-        prepTime: body.prepTime,
-        cookTime: body.cookTime,
-        servings: body.servings,
-        difficulty: body.difficulty,
-        tags: body.tags || [],
-        imageUrl: body.imageUrl,
-        galleryUrls: body.galleryUrls || [],
+        title: validatedData.title,
+        description: validatedData.description,
+        ingredients: validatedData.ingredients,
+        instructions: validatedData.instructions,
+        prepTime: validatedData.prepTime,
+        cookTime: validatedData.cookTime,
+        servings: validatedData.servings,
+        difficulty: validatedData.difficulty,
+        tags: validatedData.tags,
+        imageUrl: validatedData.imageUrl === '' ? undefined : validatedData.imageUrl,
+        galleryUrls: validatedData.galleryUrls,
         cookLogs: []
       }
     })
@@ -70,6 +100,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(recipe, { status: 201 })
   } catch (error) {
     console.error('Error creating recipe:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.format() },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Failed to create recipe' },
       { status: 500 }

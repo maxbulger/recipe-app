@@ -1,31 +1,62 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import SearchBar from '@/components/SearchBar'
+import Pagination from '@/components/Pagination'
 import { Recipe } from '@/types/recipe'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-async function getRecipes(): Promise<Recipe[]> {
+interface GetRecipesResult {
+  recipes: Recipe[]
+  total: number
+  page: number
+  totalPages: number
+}
+
+async function getRecipes(page: number = 1, limit: number = 12): Promise<GetRecipesResult> {
   try {
     // If DB isn't configured, return empty for preview
     if (!process.env.DATABASE_URL && !process.env.POSTGRES_PRISMA_URL && !process.env.POSTGRES_URL) {
-      return []
+      return { recipes: [], total: 0, page: 1, totalPages: 0 }
     }
-    const recipes = await prisma.recipe.findMany({
-      where: { deletedAt: null },
-      orderBy: { createdAt: 'desc' }
-    })
-    return recipes as unknown as Recipe[]
+
+    const skip = (page - 1) * limit
+
+    const [recipes, total] = await Promise.all([
+      prisma.recipe.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.recipe.count({ where: { deletedAt: null } })
+    ])
+
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      recipes: recipes as unknown as Recipe[],
+      total,
+      page,
+      totalPages
+    }
   } catch (error) {
     console.error('Failed to fetch recipes:', error)
-    return []
+    return { recipes: [], total: 0, page: 1, totalPages: 0 }
   }
 }
 
-export default async function HomePage() {
-  const recipes = await getRecipes()
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
+  const params = await searchParams
+  const page = parseInt(params.page || '1', 10)
+  const { recipes, totalPages } = await getRecipes(page)
   const canCreate = Boolean(process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL)
 
   return (
@@ -46,9 +77,11 @@ export default async function HomePage() {
           <Card key={recipe.id}>
             {recipe.imageUrl && (
               <Link href={`/recipes/${recipe.id}`}>
-                <img
+                <Image
                   src={recipe.imageUrl}
                   alt={recipe.title}
+                  width={400}
+                  height={192}
                   className="w-full h-48 object-cover"
                 />
               </Link>
@@ -112,6 +145,8 @@ export default async function HomePage() {
           )}
         </div>
       )}
+
+      <Pagination currentPage={page} totalPages={totalPages} baseUrl="/" />
     </div>
   )
 }

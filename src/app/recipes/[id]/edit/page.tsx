@@ -4,6 +4,7 @@ import { useState, useEffect, use, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+import AlertDialog from '@/components/ui/AlertDialog'
 import { Recipe, UpdateRecipeInput } from '@/types/recipe'
 
 interface EditRecipePageProps {
@@ -20,6 +21,8 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showErrorAlert, setShowErrorAlert] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   const [formData, setFormData] = useState<UpdateRecipeInput>({
     id,
     title: '',
@@ -122,7 +125,8 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
 
       router.push(`/recipes/${id}`)
     } catch (error) {
-      alert('Failed to update recipe')
+      setErrorMessage('Failed to update recipe')
+      setShowErrorAlert(true)
     } finally {
       setSaving(false)
     }
@@ -527,6 +531,13 @@ export default function EditRecipePage({ params }: EditRecipePageProps) {
           <Button href={`/recipes/${id}`} variant="secondary" size="lg">Cancel</Button>
         </div>
       </form>
+
+      <AlertDialog
+        isOpen={showErrorAlert}
+        onClose={() => setShowErrorAlert(false)}
+        title="Error"
+        message={errorMessage}
+      />
     </div>
   )
 }

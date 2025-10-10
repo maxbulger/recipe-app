@@ -3,19 +3,24 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import SearchBar from '@/components/SearchBar'
+import Pagination from '@/components/Pagination'
 import { Recipe } from '@/types/recipe'
 
 function SearchPageContent() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
   const tag = searchParams.get('tag') || ''
+  const currentPage = parseInt(searchParams.get('page') || '1', 10)
 
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [totalPages, setTotalPages] = useState(0)
+  const [page, setPage] = useState(currentPage)
 
   useEffect(() => {
     const run = async () => {
@@ -25,10 +30,13 @@ function SearchPageContent() {
         const params = new URLSearchParams()
         if (query) params.append('search', query)
         if (tag) params.append('tag', tag)
+        params.append('page', currentPage.toString())
         const res = await fetch(`/api/recipes?${params.toString()}`)
         if (!res.ok) throw new Error('Failed to search recipes')
         const data = await res.json()
-        setRecipes(data)
+        setRecipes(data.recipes || data)
+        setTotalPages(data.totalPages || 0)
+        setPage(data.page || currentPage)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to search recipes')
       } finally {
@@ -36,7 +44,7 @@ function SearchPageContent() {
       }
     }
     run()
-  }, [query, tag])
+  }, [query, tag, currentPage])
 
   const searchRecipes = async () => {
     setLoading(true)
@@ -46,6 +54,7 @@ function SearchPageContent() {
       const params = new URLSearchParams()
       if (query) params.append('search', query)
       if (tag) params.append('tag', tag)
+      params.append('page', currentPage.toString())
 
       const res = await fetch(`/api/recipes?${params.toString()}`)
       if (!res.ok) {
@@ -53,12 +62,22 @@ function SearchPageContent() {
       }
 
       const data = await res.json()
-      setRecipes(data)
+      setRecipes(data.recipes || data)
+      setTotalPages(data.totalPages || 0)
+      setPage(data.page || currentPage)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to search recipes')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams()
+    if (query) params.append('q', query)
+    if (tag) params.append('tag', tag)
+    params.append('page', newPage.toString())
+    window.location.href = `/search?${params.toString()}`
   }
 
   const searchTerm = query || tag
@@ -141,9 +160,11 @@ function SearchPageContent() {
               <Card key={recipe.id}>
                 {recipe.imageUrl && (
                   <Link href={`/recipes/${recipe.id}`}>
-                    <img
+                    <Image
                       src={recipe.imageUrl}
                       alt={recipe.title}
+                      width={400}
+                      height={192}
                       className="w-full h-48 object-cover"
                     />
                   </Link>
@@ -212,6 +233,10 @@ function SearchPageContent() {
               </p>
               <Button href="/" size="lg">Browse All Recipes</Button>
             </div>
+          )}
+
+          {recipes.length > 0 && (
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
           )}
         </>
       )}

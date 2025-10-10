@@ -3,6 +3,8 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import AlertDialog from '@/components/ui/AlertDialog'
 import { useRouter } from 'next/navigation'
 import { Recipe } from '@/types/recipe'
 
@@ -29,6 +31,10 @@ export default function RecipePage({ params }: RecipePageProps) {
   const [logLocation, setLogLocation] = useState('')
   const [logNotes, setLogNotes] = useState('')
   const [logSaving, setLogSaving] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showErrorAlert, setShowErrorAlert] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [showLogErrorAlert, setShowLogErrorAlert] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -65,8 +71,6 @@ export default function RecipePage({ params }: RecipePageProps) {
   }
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this recipe?')) return
-
     try {
       const res = await fetch(`/api/recipes/${id}`, {
         method: 'DELETE'
@@ -78,7 +82,8 @@ export default function RecipePage({ params }: RecipePageProps) {
 
       router.push('/')
     } catch (err) {
-      alert('Failed to delete recipe')
+      setErrorMessage('Failed to delete recipe')
+      setShowErrorAlert(true)
     }
   }
 
@@ -99,7 +104,7 @@ export default function RecipePage({ params }: RecipePageProps) {
       setLogLocation('')
       setLogNotes('')
     } catch (err) {
-      alert('Failed to add log')
+      setShowLogErrorAlert(true)
     } finally {
       setLogSaving(false)
     }
@@ -144,7 +149,7 @@ export default function RecipePage({ params }: RecipePageProps) {
           <h1 className="text-4xl font-bold text-gray-900">{recipe.title}</h1>
           <div className="flex gap-2">
             <Button href={`/recipes/${recipe.id}/edit`} size="sm">Edit</Button>
-            <Button onClick={handleDelete} variant="danger" size="sm">Delete</Button>
+            <Button onClick={() => setShowDeleteConfirm(true)} variant="danger" size="sm">Delete</Button>
           </div>
         </div>
       </div>
@@ -332,6 +337,31 @@ export default function RecipePage({ params }: RecipePageProps) {
           </ul>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title="Delete Recipe"
+        message="Are you sure you want to delete this recipe? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
+
+      <AlertDialog
+        isOpen={showErrorAlert}
+        onClose={() => setShowErrorAlert(false)}
+        title="Error"
+        message={errorMessage}
+      />
+
+      <AlertDialog
+        isOpen={showLogErrorAlert}
+        onClose={() => setShowLogErrorAlert(false)}
+        title="Error"
+        message="Failed to add cooking log. Please try again."
+      />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+import AlertDialog from '@/components/ui/AlertDialog'
 import { CreateRecipeInput } from '@/types/recipe'
 
 export default function NewRecipePage() {
@@ -12,6 +13,8 @@ export default function NewRecipePage() {
   const [photos, setPhotos] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [showErrorAlert, setShowErrorAlert] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [formData, setFormData] = useState<CreateRecipeInput>({
     title: '',
@@ -65,7 +68,8 @@ export default function NewRecipePage() {
       router.push(`/recipes/${recipe.id}`)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create recipe'
-      alert(message)
+      setErrorMessage(message)
+      setShowErrorAlert(true)
     } finally {
       setLoading(false)
     }
@@ -485,6 +489,13 @@ export default function NewRecipePage() {
           <Button href="/" variant="secondary" size="lg">Cancel</Button>
         </div>
       </form>
+
+      <AlertDialog
+        isOpen={showErrorAlert}
+        onClose={() => setShowErrorAlert(false)}
+        title="Error"
+        message={errorMessage}
+      />
     </div>
   )
 }

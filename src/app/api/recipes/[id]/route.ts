@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { UpdateRecipeInput } from '@/types/recipe'
+import { updateRecipeSchema } from '@/lib/validations/recipe'
+import { z } from 'zod'
 
 export async function GET(
   request: NextRequest,
@@ -44,7 +45,19 @@ export async function PUT(
       return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
     }
     const { id } = await params
-    const body: UpdateRecipeInput = await request.json()
+    const body = await request.json()
+
+    // Validate request body with Zod
+    const validationResult = updateRecipeSchema.safeParse({ ...body, id })
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validationResult.error.format() },
+        { status: 400 }
+      )
+    }
+
+    const validatedData = validationResult.data
 
     const existingRecipe = await prisma.recipe.findFirst({
       where: {
@@ -63,23 +76,29 @@ export async function PUT(
     const recipe = await prisma.recipe.update({
       where: { id },
       data: {
-        title: body.title,
-        description: body.description,
-        ingredients: body.ingredients,
-        instructions: body.instructions,
-        prepTime: body.prepTime,
-        cookTime: body.cookTime,
-        servings: body.servings,
-        difficulty: body.difficulty,
-        tags: body.tags,
-        imageUrl: body.imageUrl,
-        galleryUrls: body.galleryUrls || []
+        title: validatedData.title,
+        description: validatedData.description,
+        ingredients: validatedData.ingredients,
+        instructions: validatedData.instructions,
+        prepTime: validatedData.prepTime,
+        cookTime: validatedData.cookTime,
+        servings: validatedData.servings,
+        difficulty: validatedData.difficulty,
+        tags: validatedData.tags,
+        imageUrl: validatedData.imageUrl === '' ? undefined : validatedData.imageUrl,
+        galleryUrls: validatedData.galleryUrls || []
       }
     })
 
     return NextResponse.json(recipe)
   } catch (error) {
     console.error('Error updating recipe:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.format() },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Failed to update recipe' },
       { status: 500 }
